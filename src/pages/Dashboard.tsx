@@ -60,12 +60,12 @@ const Dashboard = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {kpis.map((kpi) => (
           <Card key={kpi.label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.label}</CardTitle>
-              <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
+            <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">{kpi.label}</CardTitle>
+              <kpi.icon className={`h-4 w-4 md:h-5 md:w-5 ${kpi.color}`} />
             </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
+            <CardContent className="p-3 md:p-6 pt-0">
+              <div className={`text-lg md:text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
             </CardContent>
           </Card>
         ))}
