@@ -47,8 +47,11 @@ const AccountStatement = () => {
   });
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
+  const isSupplier = selectedPartner?.type === "supplier";
 
   // Calculate accumulated balance
+  // For clients: positive balance = they owe us
+  // For suppliers: positive balance = we owe them
   let runningBalance = 0;
   const rows = (transactions ?? []).map((t) => {
     runningBalance += Number(t.debit) - Number(t.credit);
