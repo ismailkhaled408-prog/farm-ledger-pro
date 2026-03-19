@@ -57,7 +57,7 @@ const Dashboard = () => {
       <h1 className="text-xl md:text-2xl font-bold">لوحة التحكم</h1>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {kpis.map((kpi) => (
           <Card key={kpi.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
