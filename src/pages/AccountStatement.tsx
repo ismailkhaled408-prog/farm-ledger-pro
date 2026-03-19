@@ -71,22 +71,28 @@ const AccountStatement = () => {
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Cairo', sans-serif; direction: rtl; padding: 20px; }
+          body { font-family: 'Cairo', sans-serif; direction: rtl; padding: 20px; background: #fff; color: #111; }
           table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-          th { background: #4a6fa5; color: white; padding: 10px 8px; font-size: 14px; }
-          td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 13px; text-align: center; }
-          .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 3px solid #4a6fa5; padding-bottom: 15px; }
+          th { background: #1a2332; color: white; padding: 10px 8px; font-size: 14px; }
+          td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 13px; text-align: center; color: #222; }
+          .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 3px solid #1a2332; padding-bottom: 15px; }
           .debit { color: #dc2626; font-weight: bold; }
           .credit { color: #16a34a; font-weight: bold; }
           .total-row { background: #f0f4f8; font-weight: bold; }
-          .balance-row { background: #4a6fa5; color: white; font-weight: bold; }
+          .balance-row { background: #1a2332; color: white; font-weight: bold; }
+          .back-btn { display: inline-block; margin-bottom: 16px; padding: 8px 24px; background: #1a2332; color: white; border: none; border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 14px; cursor: pointer; }
+          .back-btn:hover { background: #2a3a4f; }
+          @media print { .back-btn { display: none !important; } }
         </style>
       </head>
-      <body>${content.innerHTML}</body>
+      <body>
+        <button class="back-btn" onclick="window.close()">✕ إغلاق والرجوع</button>
+        ${content.innerHTML}
+      </body>
       </html>
     `);
     win.document.close();
-    win.print();
+    setTimeout(() => win.print(), 500);
   };
 
   return (

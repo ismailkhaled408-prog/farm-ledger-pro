@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,27 @@ const NewTransaction = () => {
   const queryClient = useQueryClient();
   const [partnerId, setPartnerId] = useState("");
   const [date, setDate] = useState<Date>(new Date());
-  const [description, setDescription] = useState("");
   const [type, setType] = useState<"debit" | "credit">("debit");
-  const [amount, setAmount] = useState("");
+
+  // Debit fields (purchase)
+  const [productName, setProductName] = useState("فراخ");
+  const [quantity, setQuantity] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+
+  // Credit fields (payment)
+  const [creditAmount, setCreditAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("نقدي");
+
+  // Extra notes
+  const [notes, setNotes] = useState("");
+
+  const calculatedAmount = type === "debit"
+    ? (parseFloat(quantity) || 0) * (parseFloat(unitPrice) || 0)
+    : parseFloat(creditAmount) || 0;
+
+  const autoDescription = type === "debit"
+    ? `${productName} - ${quantity || "0"} × ${unitPrice || "0"} ج.م${notes ? ` (${notes})` : ""}`
+    : `دفع ${paymentMethod}${notes ? ` - ${notes}` : ""}`;
 
   const { data: partners } = useQuery({
     queryKey: ["partners"],
@@ -31,30 +49,31 @@ const NewTransaction = () => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const numAmount = parseFloat(amount);
-      if (!partnerId || !description || isNaN(numAmount) || numAmount <= 0) {
+      if (!partnerId || calculatedAmount <= 0) {
         throw new Error("بيانات غير صحيحة");
       }
       const { error } = await supabase.from("transactions").insert({
         partner_id: partnerId,
         date: format(date, "yyyy-MM-dd"),
-        description,
-        debit: type === "debit" ? numAmount : 0,
-        credit: type === "credit" ? numAmount : 0,
+        description: autoDescription,
+        debit: type === "debit" ? calculatedAmount : 0,
+        credit: type === "credit" ? calculatedAmount : 0,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["transactions-all"] });
-      setDescription("");
-      setAmount("");
+      setQuantity("");
+      setUnitPrice("");
+      setCreditAmount("");
+      setNotes("");
       toast.success("تمت إضافة العملية بنجاح");
     },
     onError: (e) => toast.error(e.message || "حدث خطأ"),
   });
 
-  const isValid = partnerId && description && amount && parseFloat(amount) > 0;
+  const isValid = partnerId && calculatedAmount > 0;
 
   return (
     <div className="p-4 md:p-6 max-w-xl mx-auto">
@@ -95,11 +114,6 @@ const NewTransaction = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-1 block">التفاصيل</label>
-            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="مثال: 5000 محمد نور، أو بريد (دفع نقدي)" />
-          </div>
-
-          <div>
             <label className="text-sm font-medium mb-1 block">النوع</label>
             <Select value={type} onValueChange={(v) => setType(v as "debit" | "credit")}>
               <SelectTrigger>
@@ -112,10 +126,74 @@ const NewTransaction = () => {
             </Select>
           </div>
 
+          {type === "debit" ? (
+            <>
+              <div>
+                <label className="text-sm font-medium mb-1 block">اسم المنتج</label>
+                <Select value={productName} onValueChange={setProductName}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="فراخ">فراخ</SelectItem>
+                    <SelectItem value="علف">علف</SelectItem>
+                    <SelectItem value="بيض">بيض</SelectItem>
+                    <SelectItem value="أخرى">أخرى</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">الكمية</label>
+                  <Input type="number" min="0" step="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="مثال: 50" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">سعر الوحدة</label>
+                  <Input type="number" min="0" step="0.5" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="مثال: 85" />
+                </div>
+              </div>
+              {calculatedAmount > 0 && (
+                <div className="bg-muted rounded-lg p-3 text-center">
+                  <span className="text-sm text-muted-foreground">الإجمالي: </span>
+                  <span className="text-lg font-bold text-destructive">{calculatedAmount.toLocaleString("ar-EG")} ج.م</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="text-sm font-medium mb-1 block">طريقة الدفع</label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="نقدي">نقدي</SelectItem>
+                    <SelectItem value="بريد">بريد</SelectItem>
+                    <SelectItem value="تحويل بنكي">تحويل بنكي</SelectItem>
+                    <SelectItem value="فودافون كاش">فودافون كاش</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">المبلغ</label>
+                <Input type="number" min="0" step="0.01" value={creditAmount} onChange={(e) => setCreditAmount(e.target.value)} placeholder="0.00" />
+              </div>
+            </>
+          )}
+
           <div>
-            <label className="text-sm font-medium mb-1 block">المبلغ</label>
-            <Input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+            <label className="text-sm font-medium mb-1 block">ملاحظات إضافية (اختياري)</label>
+            <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="أي تفاصيل إضافية..." />
           </div>
+
+          {/* Auto-generated description preview */}
+          {calculatedAmount > 0 && (
+            <div className="bg-muted/50 rounded-lg p-3 border border-border">
+              <span className="text-xs text-muted-foreground block mb-1">التفاصيل (تلقائي):</span>
+              <span className="text-sm font-medium">{autoDescription}</span>
+            </div>
+          )}
 
           <Button className="w-full gap-2" disabled={!isValid || mutation.isPending} onClick={() => mutation.mutate()}>
             <Save className="h-4 w-4" />
