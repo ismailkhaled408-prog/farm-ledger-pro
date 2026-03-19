@@ -47,8 +47,11 @@ const AccountStatement = () => {
   });
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
+  const isSupplier = selectedPartner?.type === "supplier";
 
   // Calculate accumulated balance
+  // For clients: positive balance = they owe us
+  // For suppliers: positive balance = we owe them
   let runningBalance = 0;
   const rows = (transactions ?? []).map((t) => {
     runningBalance += Number(t.debit) - Number(t.credit);
@@ -161,16 +164,17 @@ const AccountStatement = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-center border-b-4 border-primary pb-4 mb-4 gap-2">
             <div className="text-right hidden md:block">
-              <h2 className="text-xl font-bold">الديب لتجارة الأعلاف والدواجن</h2>
+              <h2 className="text-xl font-bold">المتوكل على الله للدواجن والأعلاف</h2>
               <p className="text-sm text-muted-foreground">جميع أنواع الأعلاف والدواجن</p>
             </div>
             <div className="text-center">
               <div className="text-4xl md:text-6xl">🐔</div>
               <p className="font-bold text-sm md:text-lg mt-1">كشف حساب: {selectedPartner?.name}</p>
+              <p className="text-xs text-muted-foreground">{selectedPartner?.type === "client" ? "عميل" : "مورد"}</p>
             </div>
             <div className="text-left hidden md:block">
-              <h2 className="text-xl font-bold">Ahmed Al-Deeb</h2>
-              <p className="text-sm text-muted-foreground">Farm & Feed Trading</p>
+              <h2 className="text-xl font-bold">Al-Mutawakel</h2>
+              <p className="text-sm text-muted-foreground">Poultry & Feed Trading</p>
             </div>
           </div>
 
@@ -181,9 +185,9 @@ const AccountStatement = () => {
               <tr className="bg-table-header text-table-header-foreground">
                 <th className="p-3 text-center font-bold">التاريخ</th>
                 <th className="p-3 text-center font-bold">التفاصيل</th>
-                <th className="p-3 text-center font-bold">عليه</th>
-                <th className="p-3 text-center font-bold">له</th>
-                <th className="p-3 text-center font-bold">الرصيد</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "مشتريات" : "عليه"}</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "مدفوعات" : "له"}</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "الباقي عليك" : "الرصيد"}</th>
               </tr>
             </thead>
             <tbody>

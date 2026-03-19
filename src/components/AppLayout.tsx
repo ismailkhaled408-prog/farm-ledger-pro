@@ -43,7 +43,7 @@ const AppLayout = () => {
       <div className="flex flex-col min-h-screen">
         {/* Top bar */}
         <header className="bg-sidebar text-sidebar-foreground px-4 py-3 flex items-center justify-between shrink-0">
-          <h1 className="text-lg font-bold">🐔 الديب للدواجن</h1>
+          <h1 className="text-lg font-bold">🐔 المتوكل على الله</h1>
           <Button variant="ghost" size="icon" className="text-sidebar-foreground" onClick={() => setSheetOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
@@ -54,8 +54,8 @@ const AppLayout = () => {
           <SheetContent side="right" className="bg-sidebar text-sidebar-foreground w-64 p-0">
             <VisuallyHidden.Root><SheetTitle>القائمة</SheetTitle></VisuallyHidden.Root>
             <div className="p-6 border-b border-sidebar-border">
-              <h1 className="text-xl font-bold text-center">🐔 الديب للدواجن</h1>
-              <p className="text-xs text-center opacity-75 mt-1">نظام إدارة المزرعة</p>
+              <h1 className="text-xl font-bold text-center">🐔 المتوكل على الله</h1>
+              <p className="text-xs text-center opacity-75 mt-1">للدواجن والأعلاف</p>
             </div>
             <nav className="p-4 space-y-1">
               {navItems.map((item) => (
@@ -102,8 +102,8 @@ const AppLayout = () => {
     <div className="flex min-h-screen">
       <aside className="no-print w-64 bg-sidebar text-sidebar-foreground flex flex-col shrink-0">
         <div className="p-6 border-b border-sidebar-border">
-          <h1 className="text-xl font-bold text-center">🐔 الديب للدواجن</h1>
-          <p className="text-xs text-center opacity-75 mt-1">نظام إدارة المزرعة</p>
+          <h1 className="text-xl font-bold text-center">🐔 المتوكل على الله</h1>
+          <p className="text-xs text-center opacity-75 mt-1">للدواجن والأعلاف</p>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => (

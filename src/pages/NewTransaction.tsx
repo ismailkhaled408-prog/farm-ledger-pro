@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -30,14 +30,6 @@ const NewTransaction = () => {
   // Extra notes
   const [notes, setNotes] = useState("");
 
-  const calculatedAmount = type === "debit"
-    ? (parseFloat(quantity) || 0) * (parseFloat(unitPrice) || 0)
-    : parseFloat(creditAmount) || 0;
-
-  const autoDescription = type === "debit"
-    ? `${productName} - ${quantity || "0"} × ${unitPrice || "0"} ج.م${notes ? ` (${notes})` : ""}`
-    : `دفع ${paymentMethod}${notes ? ` - ${notes}` : ""}`;
-
   const { data: partners } = useQuery({
     queryKey: ["partners"],
     queryFn: async () => {
@@ -46,6 +38,26 @@ const NewTransaction = () => {
       return data;
     },
   });
+
+  const selectedPartner = partners?.find((p) => p.id === partnerId);
+  const isSupplier = selectedPartner?.type === "supplier";
+
+  const calculatedAmount = type === "debit"
+    ? (parseFloat(quantity) || 0) * (parseFloat(unitPrice) || 0)
+    : parseFloat(creditAmount) || 0;
+
+  // For clients: debit = عليه (they owe us), credit = دفع لنا
+  // For suppliers: debit = اشترينا منه (we owe them), credit = دفعنا له
+  const getTypeLabel = () => {
+    if (isSupplier) {
+      return type === "debit" ? "شراء منه (عليك)" : "دفع له";
+    }
+    return type === "debit" ? "عليه (سحب بضاعة)" : "له (دفع نقدي / بريد)";
+  };
+
+  const autoDescription = type === "debit"
+    ? `${productName} - ${quantity || "0"} × ${unitPrice || "0"} ج.م${notes ? ` (${notes})` : ""}`
+    : `دفع ${paymentMethod}${notes ? ` - ${notes}` : ""}`;
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -84,7 +96,7 @@ const NewTransaction = () => {
         <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">العميل/المورد</label>
-            <Select value={partnerId} onValueChange={setPartnerId}>
+            <Select value={partnerId} onValueChange={(v) => { setPartnerId(v); }}>
               <SelectTrigger>
                 <SelectValue placeholder="اختر..." />
               </SelectTrigger>
@@ -97,6 +109,16 @@ const NewTransaction = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Show partner type badge */}
+          {selectedPartner && (
+            <div className={cn(
+              "rounded-lg p-3 text-center text-sm font-bold",
+              isSupplier ? "bg-accent/20 text-accent" : "bg-primary/20 text-primary"
+            )}>
+              {isSupplier ? "🏭 مورد - أنت بتشتري منه" : "👤 عميل - بياخد منك بضاعة"}
+            </div>
+          )}
 
           <div>
             <label className="text-sm font-medium mb-1 block">التاريخ</label>
@@ -120,8 +142,12 @@ const NewTransaction = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="debit">عليه (سحب بضاعة)</SelectItem>
-                <SelectItem value="credit">له (دفع نقدي / بريد)</SelectItem>
+                <SelectItem value="debit">
+                  {isSupplier ? "شراء منه (عليك)" : "عليه (سحب بضاعة)"}
+                </SelectItem>
+                <SelectItem value="credit">
+                  {isSupplier ? "دفع له" : "له (دفع نقدي / بريد)"}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
