@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      partners: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          type: Database["public"]["Enums"]["partner_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          type?: Database["public"]["Enums"]["partner_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          type?: Database["public"]["Enums"]["partner_type"]
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          created_at: string
+          credit: number
+          date: string
+          debit: number
+          description: string
+          id: string
+          partner_id: string
+        }
+        Insert: {
+          created_at?: string
+          credit?: number
+          date?: string
+          debit?: number
+          description: string
+          id?: string
+          partner_id: string
+        }
+        Update: {
+          created_at?: string
+          credit?: number
+          date?: string
+          debit?: number
+          description?: string
+          id?: string
+          partner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +87,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      partner_type: "client" | "supplier"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +214,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      partner_type: ["client", "supplier"],
+    },
   },
 } as const
