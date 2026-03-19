@@ -169,7 +169,8 @@ const AccountStatement = () => {
           </div>
 
           {/* Table */}
-          <table className="w-full border-collapse">
+          <div className="overflow-x-auto -mx-4 md:mx-0">
+          <table className="w-full border-collapse min-w-[500px]">
             <thead>
               <tr className="bg-table-header text-table-header-foreground">
                 <th className="p-3 text-center font-bold">التاريخ</th>
