@@ -146,8 +146,8 @@ const Partners = () => {
               <TableRow key={p.id}>
                 <TableCell className="font-medium">{p.name}</TableCell>
                 <TableCell>{p.type === "client" ? "عميل" : "مورد"}</TableCell>
-                <TableCell>{p.phone ?? "-"}</TableCell>
-                <TableCell className="max-w-48 truncate">{p.notes ?? "-"}</TableCell>
+                <TableCell className="hidden sm:table-cell">{p.phone ?? "-"}</TableCell>
+                <TableCell className="hidden md:table-cell max-w-48 truncate">{p.notes ?? "-"}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
