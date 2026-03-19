@@ -161,16 +161,17 @@ const AccountStatement = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-center border-b-4 border-primary pb-4 mb-4 gap-2">
             <div className="text-right hidden md:block">
-              <h2 className="text-xl font-bold">الديب لتجارة الأعلاف والدواجن</h2>
+              <h2 className="text-xl font-bold">المتوكل على الله للدواجن والأعلاف</h2>
               <p className="text-sm text-muted-foreground">جميع أنواع الأعلاف والدواجن</p>
             </div>
             <div className="text-center">
               <div className="text-4xl md:text-6xl">🐔</div>
               <p className="font-bold text-sm md:text-lg mt-1">كشف حساب: {selectedPartner?.name}</p>
+              <p className="text-xs text-muted-foreground">{selectedPartner?.type === "client" ? "عميل" : "مورد"}</p>
             </div>
             <div className="text-left hidden md:block">
-              <h2 className="text-xl font-bold">Ahmed Al-Deeb</h2>
-              <p className="text-sm text-muted-foreground">Farm & Feed Trading</p>
+              <h2 className="text-xl font-bold">Al-Mutawakel</h2>
+              <p className="text-sm text-muted-foreground">Poultry & Feed Trading</p>
             </div>
           </div>
 
