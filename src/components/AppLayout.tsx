@@ -54,8 +54,8 @@ const AppLayout = () => {
           <SheetContent side="right" className="bg-sidebar text-sidebar-foreground w-64 p-0">
             <VisuallyHidden.Root><SheetTitle>القائمة</SheetTitle></VisuallyHidden.Root>
             <div className="p-6 border-b border-sidebar-border">
-              <h1 className="text-xl font-bold text-center">🐔 الديب للدواجن</h1>
-              <p className="text-xs text-center opacity-75 mt-1">نظام إدارة المزرعة</p>
+              <h1 className="text-xl font-bold text-center">🐔 المتوكل على الله</h1>
+              <p className="text-xs text-center opacity-75 mt-1">للدواجن والأعلاف</p>
             </div>
             <nav className="p-4 space-y-1">
               {navItems.map((item) => (
