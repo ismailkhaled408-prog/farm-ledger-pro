@@ -43,7 +43,7 @@ const AppLayout = () => {
       <div className="flex flex-col min-h-screen">
         {/* Top bar */}
         <header className="bg-sidebar text-sidebar-foreground px-4 py-3 flex items-center justify-between shrink-0">
-          <h1 className="text-lg font-bold">🐔 الديب للدواجن</h1>
+          <h1 className="text-lg font-bold">🐔 المتوكل على الله</h1>
           <Button variant="ghost" size="icon" className="text-sidebar-foreground" onClick={() => setSheetOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
