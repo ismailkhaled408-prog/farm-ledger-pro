@@ -57,7 +57,7 @@ const NewTransaction = () => {
   const isValid = partnerId && description && amount && parseFloat(amount) > 0;
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
+    <div className="p-4 md:p-6 max-w-xl mx-auto">
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">إضافة عملية جديدة</CardTitle>

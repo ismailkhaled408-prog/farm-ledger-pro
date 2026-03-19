@@ -90,12 +90,12 @@ const AccountStatement = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">كشف حساب</h1>
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <h1 className="text-xl md:text-2xl font-bold">كشف حساب</h1>
 
       {/* Filters */}
-      <div className="no-print flex flex-wrap gap-4 items-end">
-        <div className="w-64">
+      <div className="no-print flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 items-stretch sm:items-end">
+        <div className="w-full sm:w-64">
           <label className="text-sm font-medium mb-1 block">اختر العميل</label>
           <Select value={partnerId} onValueChange={setPartnerId}>
             <SelectTrigger>
@@ -153,23 +153,24 @@ const AccountStatement = () => {
       {partnerId && (
         <div ref={printRef}>
           {/* Header */}
-          <div className="flex justify-between items-center border-b-4 border-primary pb-4 mb-4">
-            <div className="text-right">
+          <div className="flex flex-col md:flex-row justify-between items-center border-b-4 border-primary pb-4 mb-4 gap-2">
+            <div className="text-right hidden md:block">
               <h2 className="text-xl font-bold">الديب لتجارة الأعلاف والدواجن</h2>
               <p className="text-sm text-muted-foreground">جميع أنواع الأعلاف والدواجن</p>
             </div>
             <div className="text-center">
-              <div className="text-6xl">🐔</div>
-              <p className="font-bold text-lg mt-1">كشف حساب: {selectedPartner?.name}</p>
+              <div className="text-4xl md:text-6xl">🐔</div>
+              <p className="font-bold text-sm md:text-lg mt-1">كشف حساب: {selectedPartner?.name}</p>
             </div>
-            <div className="text-left">
+            <div className="text-left hidden md:block">
               <h2 className="text-xl font-bold">Ahmed Al-Deeb</h2>
               <p className="text-sm text-muted-foreground">Farm & Feed Trading</p>
             </div>
           </div>
 
           {/* Table */}
-          <table className="w-full border-collapse">
+          <div className="overflow-x-auto -mx-4 md:mx-0">
+          <table className="w-full border-collapse min-w-[500px]">
             <thead>
               <tr className="bg-table-header text-table-header-foreground">
                 <th className="p-3 text-center font-bold">التاريخ</th>
@@ -219,6 +220,7 @@ const AccountStatement = () => {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

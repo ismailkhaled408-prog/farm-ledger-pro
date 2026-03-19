@@ -74,9 +74,9 @@ const Partners = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">العملاء والموردين</h1>
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex justify-between items-center gap-2">
+        <h1 className="text-xl md:text-2xl font-bold">العملاء والموردين</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button onClick={openNew} className="gap-2">
@@ -125,14 +125,15 @@ const Partners = () => {
         </Dialog>
       </div>
 
-      <Table>
+      <div className="overflow-x-auto -mx-4 md:mx-0">
+      <Table className="min-w-[500px]">
         <TableHeader>
           <TableRow>
             <TableHead>الاسم</TableHead>
             <TableHead>النوع</TableHead>
-            <TableHead>التليفون</TableHead>
-            <TableHead>ملاحظات</TableHead>
-            <TableHead className="w-24">إجراءات</TableHead>
+            <TableHead className="hidden sm:table-cell">التليفون</TableHead>
+            <TableHead className="hidden md:table-cell">ملاحظات</TableHead>
+            <TableHead className="w-20">إجراءات</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -145,8 +146,8 @@ const Partners = () => {
               <TableRow key={p.id}>
                 <TableCell className="font-medium">{p.name}</TableCell>
                 <TableCell>{p.type === "client" ? "عميل" : "مورد"}</TableCell>
-                <TableCell>{p.phone ?? "-"}</TableCell>
-                <TableCell className="max-w-48 truncate">{p.notes ?? "-"}</TableCell>
+                <TableCell className="hidden sm:table-cell">{p.phone ?? "-"}</TableCell>
+                <TableCell className="hidden md:table-cell max-w-48 truncate">{p.notes ?? "-"}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
@@ -162,6 +163,7 @@ const Partners = () => {
           )}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 };

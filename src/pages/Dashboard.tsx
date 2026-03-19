@@ -53,19 +53,19 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">لوحة التحكم</h1>
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <h1 className="text-xl md:text-2xl font-bold">لوحة التحكم</h1>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {kpis.map((kpi) => (
           <Card key={kpi.label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.label}</CardTitle>
-              <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
+            <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">{kpi.label}</CardTitle>
+              <kpi.icon className={`h-4 w-4 md:h-5 md:w-5 ${kpi.color}`} />
             </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
+            <CardContent className="p-3 md:p-6 pt-0">
+              <div className={`text-lg md:text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
             </CardContent>
           </Card>
         ))}
@@ -104,11 +104,11 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-2">
                 {recentTransactions.map((t) => (
-                  <div key={t.id} className="flex justify-between items-center text-sm border-b pb-2">
-                    <div>
+                    <div key={t.id} className="flex justify-between items-center text-xs md:text-sm border-b pb-2 gap-2">
+                    <div className="min-w-0 flex-1">
                       <span className="font-medium">{(t.partners as any)?.name}</span>
-                      <span className="text-muted-foreground mx-2">-</span>
-                      <span className="text-muted-foreground">{t.description}</span>
+                      <span className="text-muted-foreground mx-1 md:mx-2">-</span>
+                      <span className="text-muted-foreground truncate">{t.description}</span>
                     </div>
                     <div>
                       {Number(t.debit) > 0 && <span className="text-destructive font-bold">{Number(t.debit).toLocaleString("ar-EG")}</span>}
