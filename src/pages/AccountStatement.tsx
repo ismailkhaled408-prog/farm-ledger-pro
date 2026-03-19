@@ -185,9 +185,9 @@ const AccountStatement = () => {
               <tr className="bg-table-header text-table-header-foreground">
                 <th className="p-3 text-center font-bold">التاريخ</th>
                 <th className="p-3 text-center font-bold">التفاصيل</th>
-                <th className="p-3 text-center font-bold">عليه</th>
-                <th className="p-3 text-center font-bold">له</th>
-                <th className="p-3 text-center font-bold">الرصيد</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "مشتريات" : "عليه"}</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "مدفوعات" : "له"}</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "الباقي عليك" : "الرصيد"}</th>
               </tr>
             </thead>
             <tbody>
