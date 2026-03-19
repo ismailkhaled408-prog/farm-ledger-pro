@@ -125,14 +125,15 @@ const Partners = () => {
         </Dialog>
       </div>
 
-      <Table>
+      <div className="overflow-x-auto -mx-4 md:mx-0">
+      <Table className="min-w-[500px]">
         <TableHeader>
           <TableRow>
             <TableHead>الاسم</TableHead>
             <TableHead>النوع</TableHead>
-            <TableHead>التليفون</TableHead>
-            <TableHead>ملاحظات</TableHead>
-            <TableHead className="w-24">إجراءات</TableHead>
+            <TableHead className="hidden sm:table-cell">التليفون</TableHead>
+            <TableHead className="hidden md:table-cell">ملاحظات</TableHead>
+            <TableHead className="w-20">إجراءات</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
