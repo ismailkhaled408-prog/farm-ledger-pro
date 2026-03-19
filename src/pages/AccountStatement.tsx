@@ -90,12 +90,12 @@ const AccountStatement = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">كشف حساب</h1>
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <h1 className="text-xl md:text-2xl font-bold">كشف حساب</h1>
 
       {/* Filters */}
-      <div className="no-print flex flex-wrap gap-4 items-end">
-        <div className="w-64">
+      <div className="no-print flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 items-stretch sm:items-end">
+        <div className="w-full sm:w-64">
           <label className="text-sm font-medium mb-1 block">اختر العميل</label>
           <Select value={partnerId} onValueChange={setPartnerId}>
             <SelectTrigger>
