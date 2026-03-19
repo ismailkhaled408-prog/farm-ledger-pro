@@ -163,6 +163,7 @@ const Partners = () => {
           )}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 };

@@ -220,6 +220,7 @@ const AccountStatement = () => {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

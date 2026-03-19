@@ -104,11 +104,11 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-2">
                 {recentTransactions.map((t) => (
-                  <div key={t.id} className="flex justify-between items-center text-sm border-b pb-2">
-                    <div>
+                    <div key={t.id} className="flex justify-between items-center text-xs md:text-sm border-b pb-2 gap-2">
+                    <div className="min-w-0 flex-1">
                       <span className="font-medium">{(t.partners as any)?.name}</span>
-                      <span className="text-muted-foreground mx-2">-</span>
-                      <span className="text-muted-foreground">{t.description}</span>
+                      <span className="text-muted-foreground mx-1 md:mx-2">-</span>
+                      <span className="text-muted-foreground truncate">{t.description}</span>
                     </div>
                     <div>
                       {Number(t.debit) > 0 && <span className="text-destructive font-bold">{Number(t.debit).toLocaleString("ar-EG")}</span>}
