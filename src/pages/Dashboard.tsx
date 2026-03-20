@@ -3,14 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, TrendingDown, TrendingUp, DollarSign, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Section = "debtors" | "recent" | null;
+type FilterType = "all" | "client" | "supplier";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [openSection, setOpenSection] = useState<Section>(null);
+  const [filterType, setFilterType] = useState<FilterType>("all");
 
   const { data: partners } = useQuery({
     queryKey: ["partners"],
@@ -33,14 +36,23 @@ const Dashboard = () => {
     },
   });
 
-  const totalPartners = partners?.length ?? 0;
-  const totalDebit = transactions?.reduce((sum, t) => sum + Number(t.debit), 0) ?? 0;
-  const totalCredit = transactions?.reduce((sum, t) => sum + Number(t.credit), 0) ?? 0;
+  // Filter by type
+  const filteredPartnerIds = new Set(
+    partners
+      ?.filter((p) => filterType === "all" || p.type === filterType)
+      .map((p) => p.id) ?? []
+  );
+
+  const filteredTransactions = transactions?.filter((t) => filteredPartnerIds.has(t.partner_id)) ?? [];
+
+  const totalPartners = partners?.filter((p) => filterType === "all" || p.type === filterType).length ?? 0;
+  const totalDebit = filteredTransactions.reduce((sum, t) => sum + Number(t.debit), 0);
+  const totalCredit = filteredTransactions.reduce((sum, t) => sum + Number(t.credit), 0);
   const netBalance = totalDebit - totalCredit;
 
-  // Top debtors (clients who owe us)
+  // Partner balances
   const partnerBalances = new Map<string, { name: string; balance: number; type: string }>();
-  transactions?.forEach((t) => {
+  filteredTransactions.forEach((t) => {
     const p = t.partners as any;
     const name = p?.name ?? "غير معروف";
     const type = p?.type ?? "client";
@@ -54,7 +66,7 @@ const Dashboard = () => {
     .sort((a, b) => b.balance - a.balance)
     .slice(0, 5);
 
-  const recentTransactions = transactions?.slice(0, 10) ?? [];
+  const recentTransactions = filteredTransactions.slice(0, 10);
 
   const toggle = (section: Section) => {
     setOpenSection((prev) => (prev === section ? null : section));
@@ -62,21 +74,21 @@ const Dashboard = () => {
 
   const kpis = [
     {
-      label: "إجمالي العملاء",
+      label: filterType === "supplier" ? "إجمالي الموردين" : filterType === "client" ? "إجمالي العملاء" : "إجمالي الشركاء",
       value: totalPartners,
       icon: Users,
       color: "text-primary",
       action: () => navigate("/partners"),
     },
     {
-      label: "إجمالي المديونيات",
+      label: filterType === "supplier" ? "إجمالي المشتريات" : "إجمالي المديونيات",
       value: totalDebit.toLocaleString("ar-EG"),
       icon: TrendingDown,
       color: "text-destructive",
       action: () => toggle("debtors"),
     },
     {
-      label: "إجمالي المدفوعات",
+      label: filterType === "supplier" ? "إجمالي المدفوع لهم" : "إجمالي المدفوعات",
       value: totalCredit.toLocaleString("ar-EG"),
       icon: TrendingUp,
       color: "text-success",
@@ -93,7 +105,19 @@ const Dashboard = () => {
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      <h1 className="text-xl md:text-2xl font-bold">لوحة التحكم</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl md:text-2xl font-bold">لوحة التحكم</h1>
+        <Select value={filterType} onValueChange={(v) => setFilterType(v as FilterType)}>
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">الكل</SelectItem>
+            <SelectItem value="client">العملاء</SelectItem>
+            <SelectItem value="supplier">الموردين</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -120,7 +144,9 @@ const Dashboard = () => {
           className="cursor-pointer flex flex-row items-center justify-between"
           onClick={() => toggle("debtors")}
         >
-          <CardTitle className="text-lg">أعلى العملاء المدينين</CardTitle>
+          <CardTitle className="text-lg">
+            {filterType === "supplier" ? "أعلى الموردين المستحقين" : "أعلى العملاء المدينين"}
+          </CardTitle>
           {openSection === "debtors" ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
         </CardHeader>
         {openSection === "debtors" && (

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, FileText, Users, PlusCircle, Menu, X } from "lucide-react";
+import { LayoutDashboard, FileText, Users, PlusCircle, Menu, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,6 +12,7 @@ const navItems = [
   { to: "/statement", label: "كشف حساب", icon: FileText },
   { to: "/partners", label: "العملاء", icon: Users },
   { to: "/transactions/new", label: "إضافة", icon: PlusCircle },
+  { to: "/statistics", label: "إحصائيات", icon: BarChart3 },
 ];
 
 const NavItemContent = ({ item, onClick }: { item: typeof navItems[0]; onClick?: () => void }) => (
