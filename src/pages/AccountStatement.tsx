@@ -119,16 +119,18 @@ const AccountStatement = () => {
   const selectedPartner = partners?.find((p) => p.id === partnerId);
   const isSupplier = selectedPartner?.type === "supplier";
 
+  // قائمة المنتجات الديناميكية من الإعدادات
+  const productOptions = bizSettings?.products && Array.isArray(bizSettings.products) && bizSettings.products.length > 0
+    ? bizSettings.products
+    : ["فراخ", "علف", "بيض", "أخرى"];
+
   // Data processing for Edit Mode
   const handleEditClick = (r: any) => {
-    // Set Date
     setEditDate(new Date(r.date));
-
-    // Set Type
     const isDebit = Number(r.debit) > 0;
     setEditType(isDebit ? "debit" : "credit");
 
-    let parsedProductName = "فراخ";
+    let parsedProductName = productOptions[0] || "فراخ";
     let parsedQty = "";
     let parsedPrice = "";
     let parsedNotes = "";
@@ -137,11 +139,10 @@ const AccountStatement = () => {
     const desc = r.description || "";
 
     if (isDebit) {
-      // Parse: "فراخ - 50 × 85 ج.م (ملاحظات)"
       const parts = desc.split(" - ");
       if (parts.length > 0) {
         const possibleProduct = parts[0].trim();
-        if (["فراخ", "علف", "بيض", "أخرى"].includes(possibleProduct)) parsedProductName = possibleProduct;
+        if (productOptions.includes(possibleProduct)) parsedProductName = possibleProduct;
       }
       if (parts.length > 1) {
         const qtyPriceStr = parts[1].split(" ج.م")[0];
@@ -154,7 +155,6 @@ const AccountStatement = () => {
       const noteMatch = desc.match(/\((.*?)\)$/);
       if (noteMatch) parsedNotes = noteMatch[1];
     } else {
-      // Parse: "دفع نقدي - ملاحظات"
       if (desc.startsWith("دفع ")) {
         const pParts = desc.replace("دفع ", "").split(" - ");
         const possibleMethod = pParts[0].trim();
@@ -391,7 +391,6 @@ const AccountStatement = () => {
           
           <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-2">
             
-            {/* حقل التاريخ الجديد */}
             <div>
               <label className="text-sm font-medium mb-1 block text-right">التاريخ</label>
               <Popover>
@@ -433,10 +432,10 @@ const AccountStatement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent dir="rtl">
-                      <SelectItem value="فراخ">فراخ</SelectItem>
-                      <SelectItem value="علف">علف</SelectItem>
-                      <SelectItem value="بيض">بيض</SelectItem>
-                      <SelectItem value="أخرى">أخرى</SelectItem>
+                      {/* المنتجات الديناميكية هنا */}
+                      {productOptions.map((prod: string) => (
+                        <SelectItem key={prod} value={prod}>{prod}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -461,7 +460,7 @@ const AccountStatement = () => {
               <>
                 <div>
                   <label className="text-sm font-medium mb-1 block text-right">طريقة الدفع</label>
-                  <Select value={editPaymentMethod} onValueChange={setEditPaymentMethod}>
+                  <Select value={editPaymentMethod} onValueChange={setPaymentMethod}>
                     <SelectTrigger dir="rtl">
                       <SelectValue />
                     </SelectTrigger>
