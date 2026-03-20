@@ -1,11 +1,12 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, FileText, Users, PlusCircle, Menu, BarChart3 } from "lucide-react";
+import { LayoutDashboard, FileText, Users, PlusCircle, Menu, BarChart3, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 
 const navItems = [
   { to: "/", label: "الرئيسية", icon: LayoutDashboard },
@@ -13,6 +14,7 @@ const navItems = [
   { to: "/partners", label: "العملاء", icon: Users },
   { to: "/transactions/new", label: "إضافة", icon: PlusCircle },
   { to: "/statistics", label: "إحصائيات", icon: BarChart3 },
+  { to: "/settings", label: "الإعدادات", icon: Settings },
 ];
 
 const NavItemContent = ({ item, onClick }: { item: typeof navItems[0]; onClick?: () => void }) => (
@@ -37,26 +39,27 @@ const NavItemContent = ({ item, onClick }: { item: typeof navItems[0]; onClick?:
 const AppLayout = () => {
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { data: settings } = useBusinessSettings();
 
-  // Mobile layout: top bar + bottom nav
+  const businessName = settings?.business_name ?? "المتوكل على الله للدواجن";
+  const businessSubtitle = settings?.business_subtitle ?? "جميع أنواع الأعلاف والدواجن";
+
   if (isMobile) {
     return (
       <div className="flex flex-col min-h-screen">
-        {/* Top bar */}
         <header className="bg-sidebar text-sidebar-foreground px-4 py-3 flex items-center justify-between shrink-0">
-          <h1 className="text-lg font-bold">🐔 المتوكل على الله</h1>
+          <h1 className="text-lg font-bold">🐔 {businessName}</h1>
           <Button variant="ghost" size="icon" className="text-sidebar-foreground" onClick={() => setSheetOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
         </header>
 
-        {/* Side menu sheet */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetContent side="right" className="bg-sidebar text-sidebar-foreground w-64 p-0">
             <VisuallyHidden.Root><SheetTitle>القائمة</SheetTitle></VisuallyHidden.Root>
             <div className="p-6 border-b border-sidebar-border">
-              <h1 className="text-xl font-bold text-center">🐔 المتوكل على الله</h1>
-              <p className="text-xs text-center opacity-75 mt-1">للدواجن والأعلاف</p>
+              <h1 className="text-xl font-bold text-center">🐔 {businessName}</h1>
+              <p className="text-xs text-center opacity-75 mt-1">{businessSubtitle}</p>
             </div>
             <nav className="p-4 space-y-1">
               {navItems.map((item) => (
@@ -66,12 +69,10 @@ const AppLayout = () => {
           </SheetContent>
         </Sheet>
 
-        {/* Main Content */}
         <main className="flex-1 overflow-auto pb-20">
           <Outlet />
         </main>
 
-        {/* Bottom Navigation */}
         <nav className="no-print fixed bottom-0 inset-x-0 bg-sidebar text-sidebar-foreground border-t border-sidebar-border z-40">
           <div className="flex justify-around items-center h-16">
             {navItems.map((item) => (
@@ -98,13 +99,12 @@ const AppLayout = () => {
     );
   }
 
-  // Desktop layout: sidebar
   return (
     <div className="flex min-h-screen">
       <aside className="no-print w-64 bg-sidebar text-sidebar-foreground flex flex-col shrink-0">
         <div className="p-6 border-b border-sidebar-border">
-          <h1 className="text-xl font-bold text-center">🐔 المتوكل على الله</h1>
-          <p className="text-xs text-center opacity-75 mt-1">للدواجن والأعلاف</p>
+          <h1 className="text-xl font-bold text-center">🐔 {businessName}</h1>
+          <p className="text-xs text-center opacity-75 mt-1">{businessSubtitle}</p>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => (
