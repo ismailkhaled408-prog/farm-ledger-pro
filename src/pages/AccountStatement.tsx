@@ -23,6 +23,7 @@ import {
 
 const AccountStatement = () => {
   const queryClient = useQueryClient();
+  const { data: bizSettings } = useBusinessSettings();
   const [partnerId, setPartnerId] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
