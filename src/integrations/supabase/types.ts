@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_settings: {
+        Row: {
+          business_name: string
+          business_name_en: string
+          business_subtitle: string
+          business_subtitle_en: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          business_name?: string
+          business_name_en?: string
+          business_subtitle?: string
+          business_subtitle_en?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          business_name?: string
+          business_name_en?: string
+          business_subtitle?: string
+          business_subtitle_en?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           created_at: string
