@@ -37,8 +37,15 @@ const AccountStatement = () => {
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
-  // State for editing
+  // States for Edit Mode (Mirrors NewTransaction logic)
   const [editItem, setEditItem] = useState<any>(null);
+  const [editType, setEditType] = useState<"debit" | "credit">("debit");
+  const [editProductName, setEditProductName] = useState("فراخ");
+  const [editQuantity, setEditQuantity] = useState("");
+  const [editUnitPrice, setEditUnitPrice] = useState("");
+  const [editCreditAmount, setEditCreditAmount] = useState("");
+  const [editPaymentMethod, setEditPaymentMethod] = useState("نقدي");
+  const [editNotes, setEditNotes] = useState("");
   
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -86,15 +93,14 @@ const AccountStatement = () => {
     onError: () => toast.error("حدث خطأ أثناء الحذف"),
   });
 
-  // Mutation for Update
   const updateMutation = useMutation({
     mutationFn: async (payload: any) => {
       const { error } = await supabase
         .from("transactions")
         .update({
           description: payload.description,
-          debit: parseFloat(payload.debit) || 0,
-          credit: parseFloat(payload.credit) || 0,
+          debit: payload.debit,
+          credit: payload.credit,
         })
         .eq("id", payload.id);
       if (error) throw error;
@@ -110,6 +116,63 @@ const AccountStatement = () => {
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
   const isSupplier = selectedPartner?.type === "supplier";
+
+  // Data processing for Edit Mode
+  const handleEditClick = (r: any) => {
+    const isDebit = Number(r.debit) > 0;
+    setEditType(isDebit ? "debit" : "credit");
+
+    let parsedProductName = "فراخ";
+    let parsedQty = "";
+    let parsedPrice = "";
+    let parsedNotes = "";
+    let parsedMethod = "نقدي";
+
+    const desc = r.description || "";
+
+    if (isDebit) {
+      // Parse: "فراخ - 50 × 85 ج.م (ملاحظات)"
+      const parts = desc.split(" - ");
+      if (parts.length > 0) {
+        const possibleProduct = parts[0].trim();
+        if (["فراخ", "علف", "بيض", "أخرى"].includes(possibleProduct)) parsedProductName = possibleProduct;
+      }
+      if (parts.length > 1) {
+        const qtyPriceStr = parts[1].split(" ج.م")[0];
+        const qpParts = qtyPriceStr.split("×").map((s: string) => s.trim());
+        if (qpParts.length === 2) {
+          parsedQty = qpParts[0];
+          parsedPrice = qpParts[1];
+        }
+      }
+      const noteMatch = desc.match(/\((.*?)\)$/);
+      if (noteMatch) parsedNotes = noteMatch[1];
+    } else {
+      // Parse: "دفع نقدي - ملاحظات"
+      if (desc.startsWith("دفع ")) {
+        const pParts = desc.replace("دفع ", "").split(" - ");
+        const possibleMethod = pParts[0].trim();
+        if (["نقدي", "بريد", "تحويل بنكي", "فودافون كاش"].includes(possibleMethod)) parsedMethod = possibleMethod;
+        if (pParts.length > 1) parsedNotes = pParts[1].trim();
+      }
+      setEditCreditAmount(r.credit.toString());
+    }
+
+    setEditProductName(parsedProductName);
+    setEditQuantity(parsedQty);
+    setEditUnitPrice(parsedPrice);
+    setEditPaymentMethod(parsedMethod);
+    setEditNotes(parsedNotes);
+    setEditItem(r);
+  };
+
+  const calculatedEditAmount = editType === "debit"
+    ? (parseFloat(editQuantity) || 0) * (parseFloat(editUnitPrice) || 0)
+    : parseFloat(editCreditAmount) || 0;
+
+  const autoEditDescription = editType === "debit"
+    ? `${editProductName} - ${editQuantity || "0"} × ${editUnitPrice || "0"} ج.م${editNotes ? ` (${editNotes})` : ""}`
+    : `دفع ${editPaymentMethod}${editNotes ? ` - ${editNotes}` : ""}`;
 
   let runningBalance = 0;
   const rows = (transactions ?? []).map((t) => {
@@ -277,7 +340,7 @@ const AccountStatement = () => {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-blue-500 hover:bg-blue-100"
-                            onClick={() => setEditItem(r)}
+                            onClick={() => handleEditClick(r)}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -313,41 +376,113 @@ const AccountStatement = () => {
         </div>
       )}
 
-      {/* Edit Dialog */}
+      {/* Advanced Edit Dialog */}
       <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
-        <DialogContent className="sm:max-w-[425px]" dir="rtl">
+        <DialogContent className="sm:max-w-[500px]" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-right">تعديل العملية</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-right block">التفاصيل</label>
-              <Input 
-                value={editItem?.description || ""} 
-                onChange={(e) => setEditItem({...editItem, description: e.target.value})}
-              />
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block text-right">النوع</label>
+              <Select value={editType} onValueChange={(v) => setEditType(v as "debit" | "credit")}>
+                <SelectTrigger dir="rtl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent dir="rtl">
+                  <SelectItem value="debit">
+                    {isSupplier ? "شراء منه (عليك)" : "عليه (سحب بضاعة)"}
+                  </SelectItem>
+                  <SelectItem value="credit">
+                    {isSupplier ? "دفع له" : "له (دفع نقدي / بريد)"}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-right block">عليه / مدين</label>
-                <Input 
-                  type="number"
-                  value={editItem?.debit || 0} 
-                  onChange={(e) => setEditItem({...editItem, debit: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-right block">له / دائن</label>
-                <Input 
-                  type="number"
-                  value={editItem?.credit || 0} 
-                  onChange={(e) => setEditItem({...editItem, credit: e.target.value})}
-                />
-              </div>
+
+            {editType === "debit" ? (
+              <>
+                <div>
+                  <label className="text-sm font-medium mb-1 block text-right">اسم المنتج</label>
+                  <Select value={editProductName} onValueChange={setEditProductName}>
+                    <SelectTrigger dir="rtl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent dir="rtl">
+                      <SelectItem value="فراخ">فراخ</SelectItem>
+                      <SelectItem value="علف">علف</SelectItem>
+                      <SelectItem value="بيض">بيض</SelectItem>
+                      <SelectItem value="أخرى">أخرى</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block text-right">الكمية</label>
+                    <Input type="number" min="0" step="1" value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block text-right">سعر الوحدة</label>
+                    <Input type="number" min="0" step="0.5" value={editUnitPrice} onChange={(e) => setEditUnitPrice(e.target.value)} />
+                  </div>
+                </div>
+                {calculatedEditAmount > 0 && (
+                  <div className="bg-muted rounded-lg p-3 text-center">
+                    <span className="text-sm text-muted-foreground">الإجمالي: </span>
+                    <span className="text-lg font-bold text-destructive">{calculatedEditAmount.toLocaleString("ar-EG")} ج.م</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="text-sm font-medium mb-1 block text-right">طريقة الدفع</label>
+                  <Select value={editPaymentMethod} onValueChange={setEditPaymentMethod}>
+                    <SelectTrigger dir="rtl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent dir="rtl">
+                      <SelectItem value="نقدي">نقدي</SelectItem>
+                      <SelectItem value="بريد">بريد</SelectItem>
+                      <SelectItem value="تحويل بنكي">تحويل بنكي</SelectItem>
+                      <SelectItem value="فودافون كاش">فودافون كاش</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block text-right">المبلغ</label>
+                  <Input type="number" min="0" step="0.01" value={editCreditAmount} onChange={(e) => setEditCreditAmount(e.target.value)} />
+                </div>
+              </>
+            )}
+
+            <div>
+              <label className="text-sm font-medium mb-1 block text-right">ملاحظات إضافية (اختياري)</label>
+              <Input value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="أي تفاصيل إضافية..." />
             </div>
+
+            {calculatedEditAmount > 0 && (
+              <div className="bg-muted/50 rounded-lg p-3 border border-border">
+                <span className="text-xs text-muted-foreground block mb-1 text-right">التفاصيل الجديدة:</span>
+                <span className="text-sm font-medium text-right block">{autoEditDescription}</span>
+              </div>
+            )}
           </div>
+
           <DialogFooter>
-            <Button className="w-full gap-2" onClick={() => updateMutation.mutate(editItem)}>
+            <Button 
+              className="w-full gap-2" 
+              disabled={calculatedEditAmount <= 0}
+              onClick={() => {
+                updateMutation.mutate({
+                  id: editItem.id,
+                  description: autoEditDescription,
+                  debit: editType === "debit" ? calculatedEditAmount : 0,
+                  credit: editType === "credit" ? calculatedEditAmount : 0,
+                });
+              }}
+            >
               <Save className="h-4 w-4" /> حفظ التعديلات
             </Button>
           </DialogFooter>
