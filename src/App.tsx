@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import AccountStatement from "./pages/AccountStatement";
 import Partners from "./pages/Partners";
 import NewTransaction from "./pages/NewTransaction";
+import Statistics from "./pages/Statistics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
