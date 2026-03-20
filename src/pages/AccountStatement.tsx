@@ -1,19 +1,31 @@
 import { useState, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Printer } from "lucide-react";
+import { CalendarIcon, Printer, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { ar } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const AccountStatement = () => {
+  const queryClient = useQueryClient();
   const [partnerId, setPartnerId] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   const { data: partners } = useQuery({
@@ -46,12 +58,23 @@ const AccountStatement = () => {
     enabled: !!partnerId,
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("transactions").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions-all"] });
+      toast.success("تم حذف العملية بنجاح");
+      setDeleteId(null);
+    },
+    onError: () => toast.error("حدث خطأ أثناء الحذف"),
+  });
+
   const selectedPartner = partners?.find((p) => p.id === partnerId);
   const isSupplier = selectedPartner?.type === "supplier";
 
-  // Calculate accumulated balance
-  // For clients: positive balance = they owe us
-  // For suppliers: positive balance = we owe them
   let runningBalance = 0;
   const rows = (transactions ?? []).map((t) => {
     runningBalance += Number(t.debit) - Number(t.credit);
@@ -85,7 +108,8 @@ const AccountStatement = () => {
           .balance-row { background: #1a2332; color: white; font-weight: bold; }
           .back-btn { display: inline-block; margin-bottom: 16px; padding: 8px 24px; background: #1a2332; color: white; border: none; border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 14px; cursor: pointer; }
           .back-btn:hover { background: #2a3a4f; }
-          @media print { .back-btn { display: none !important; } }
+          .delete-col { display: none; }
+          @media print { .back-btn { display: none !important; } .delete-col { display: none !important; } }
         </style>
       </head>
       <body>
@@ -161,7 +185,6 @@ const AccountStatement = () => {
       {/* Printable Statement */}
       {partnerId && (
         <div ref={printRef}>
-          {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-center border-b-4 border-primary pb-4 mb-4 gap-2">
             <div className="text-right hidden md:block">
               <h2 className="text-xl font-bold">المتوكل على الله للدواجن والأعلاف</h2>
@@ -178,7 +201,6 @@ const AccountStatement = () => {
             </div>
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto -mx-4 md:mx-0">
           <table className="w-full border-collapse min-w-[500px]">
             <thead>
@@ -188,12 +210,13 @@ const AccountStatement = () => {
                 <th className="p-3 text-center font-bold">{isSupplier ? "مشتريات" : "عليه"}</th>
                 <th className="p-3 text-center font-bold">{isSupplier ? "مدفوعات" : "له"}</th>
                 <th className="p-3 text-center font-bold">{isSupplier ? "الباقي عليك" : "الرصيد"}</th>
+                <th className="p-3 text-center font-bold no-print delete-col">حذف</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
                     لا توجد عمليات
                   </td>
                 </tr>
@@ -212,19 +235,29 @@ const AccountStatement = () => {
                       <td className={cn("p-3 text-center font-bold", r.balance > 0 ? "text-destructive" : "text-success")}>
                         {r.balance.toLocaleString("ar-EG")}
                       </td>
+                      <td className="p-3 text-center no-print delete-col">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteId(r.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </td>
                     </tr>
                   ))}
-                  {/* Totals Row */}
                   <tr className="bg-muted font-bold border-t-2 border-primary">
                     <td className="p-3 text-center" colSpan={2}>إجمالي العمليات</td>
                     <td className="p-3 text-center text-destructive">{totalDebit.toLocaleString("ar-EG")}</td>
                     <td className="p-3 text-center text-success">{totalCredit.toLocaleString("ar-EG")}</td>
                     <td className="p-3 text-center">-</td>
+                    <td className="no-print delete-col"></td>
                   </tr>
-                  {/* Final Balance Row */}
                   <tr className="bg-primary text-primary-foreground font-bold">
                     <td className="p-3 text-center" colSpan={4}>الرصيد الإجمالي</td>
                     <td className="p-3 text-center text-lg">{finalBalance.toLocaleString("ar-EG")}</td>
+                    <td className="no-print delete-col"></td>
                   </tr>
                 </>
               )}
@@ -233,6 +266,27 @@ const AccountStatement = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>هل أنت متأكد من حذف هذه العملية؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              لا يمكن التراجع عن هذا الإجراء. سيتم حذف العملية نهائياً.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
