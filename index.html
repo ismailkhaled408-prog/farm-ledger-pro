@@ -28,4 +28,17 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
+
+  <style>
+  /* إخفاء شعار Lovable */
+  .lovable-badge, 
+  [id*="lovable"], 
+  button[title*="Lovable"],
+  div[class*="lovable"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+</style>
 </html>
