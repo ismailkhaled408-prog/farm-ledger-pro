@@ -37,8 +37,9 @@ const AccountStatement = () => {
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
-  // States for Edit Mode (Mirrors NewTransaction logic)
+  // States for Edit Mode
   const [editItem, setEditItem] = useState<any>(null);
+  const [editDate, setEditDate] = useState<Date>(new Date());
   const [editType, setEditType] = useState<"debit" | "credit">("debit");
   const [editProductName, setEditProductName] = useState("فراخ");
   const [editQuantity, setEditQuantity] = useState("");
@@ -98,6 +99,7 @@ const AccountStatement = () => {
       const { error } = await supabase
         .from("transactions")
         .update({
+          date: payload.date,
           description: payload.description,
           debit: payload.debit,
           credit: payload.credit,
@@ -119,6 +121,10 @@ const AccountStatement = () => {
 
   // Data processing for Edit Mode
   const handleEditClick = (r: any) => {
+    // Set Date
+    setEditDate(new Date(r.date));
+
+    // Set Type
     const isDebit = Number(r.debit) > 0;
     setEditType(isDebit ? "debit" : "credit");
 
@@ -383,7 +389,24 @@ const AccountStatement = () => {
             <DialogTitle className="text-right">تعديل العملية</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-2">
+            
+            {/* حقل التاريخ الجديد */}
+            <div>
+              <label className="text-sm font-medium mb-1 block text-right">التاريخ</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start", !editDate && "text-muted-foreground")}>
+                    <CalendarIcon className="ml-2 h-4 w-4" />
+                    {editDate ? format(editDate, "yyyy/MM/dd") : "اختر تاريخ"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={editDate} onSelect={(d) => d && setEditDate(d)} className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+
             <div>
               <label className="text-sm font-medium mb-1 block text-right">النوع</label>
               <Select value={editType} onValueChange={(v) => setEditType(v as "debit" | "credit")}>
@@ -477,6 +500,7 @@ const AccountStatement = () => {
               onClick={() => {
                 updateMutation.mutate({
                   id: editItem.id,
+                  date: format(editDate, "yyyy-MM-dd"),
                   description: autoEditDescription,
                   debit: editType === "debit" ? calculatedEditAmount : 0,
                   credit: editType === "credit" ? calculatedEditAmount : 0,
