@@ -189,8 +189,8 @@ const AccountStatement = () => {
         <div ref={printRef}>
           <div className="flex flex-col md:flex-row justify-between items-center border-b-4 border-primary pb-4 mb-4 gap-2">
             <div className="text-right hidden md:block">
-              <h2 className="text-xl font-bold">المتوكل على الله للدواجن والأعلاف</h2>
-              <p className="text-sm text-muted-foreground">جميع أنواع الأعلاف والدواجن</p>
+              <h2 className="text-xl font-bold">{bizSettings?.business_name ?? "المتوكل على الله للدواجن"}</h2>
+              <p className="text-sm text-muted-foreground">{bizSettings?.business_subtitle ?? "جميع أنواع الأعلاف والدواجن"}</p>
             </div>
             <div className="text-center">
               <div className="text-4xl md:text-6xl">🐔</div>
@@ -198,8 +198,8 @@ const AccountStatement = () => {
               <p className="text-xs text-muted-foreground">{selectedPartner?.type === "client" ? "عميل" : "مورد"}</p>
             </div>
             <div className="text-left hidden md:block">
-              <h2 className="text-xl font-bold">Al-Mutawakel</h2>
-              <p className="text-sm text-muted-foreground">Poultry & Feed Trading</p>
+              <h2 className="text-xl font-bold">{bizSettings?.business_name_en ?? "Al-Mutawakel"}</h2>
+              <p className="text-sm text-muted-foreground">{bizSettings?.business_subtitle_en ?? "Poultry & Feed Trading"}</p>
             </div>
           </div>
 
