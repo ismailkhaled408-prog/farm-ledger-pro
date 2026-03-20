@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, FileText, Users, PlusCircle, Menu, X } from "lucide-react";
+import { LayoutDashboard, FileText, Users, PlusCircle, Menu, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
