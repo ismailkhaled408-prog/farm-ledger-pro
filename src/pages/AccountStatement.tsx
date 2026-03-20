@@ -6,10 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Printer, Trash2 } from "lucide-react";
+import { CalendarIcon, Printer, Trash2, Pencil, Save } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const AccountStatement = () => {
   const queryClient = useQueryClient();
@@ -28,6 +36,10 @@ const AccountStatement = () => {
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  
+  // State for editing
+  const [editItem, setEditItem] = useState<any>(null);
+  
   const printRef = useRef<HTMLDivElement>(null);
 
   const { data: partners } = useQuery({
@@ -72,6 +84,28 @@ const AccountStatement = () => {
       setDeleteId(null);
     },
     onError: () => toast.error("حدث خطأ أثناء الحذف"),
+  });
+
+  // Mutation for Update
+  const updateMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const { error } = await supabase
+        .from("transactions")
+        .update({
+          description: payload.description,
+          debit: parseFloat(payload.debit) || 0,
+          credit: parseFloat(payload.credit) || 0,
+        })
+        .eq("id", payload.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions-all"] });
+      toast.success("تم التعديل بنجاح");
+      setEditItem(null);
+    },
+    onError: () => toast.error("حدث خطأ أثناء التعديل"),
   });
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
@@ -212,7 +246,7 @@ const AccountStatement = () => {
                 <th className="p-3 text-center font-bold">{isSupplier ? "مشتريات" : "عليه"}</th>
                 <th className="p-3 text-center font-bold">{isSupplier ? "مدفوعات" : "له"}</th>
                 <th className="p-3 text-center font-bold">{isSupplier ? "الباقي عليك" : "الرصيد"}</th>
-                <th className="p-3 text-center font-bold no-print delete-col">حذف</th>
+                <th className="p-3 text-center font-bold no-print delete-col">تعديل / حذف</th>
               </tr>
             </thead>
             <tbody>
@@ -238,14 +272,24 @@ const AccountStatement = () => {
                         {r.balance.toLocaleString("ar-EG")}
                       </td>
                       <td className="p-3 text-center no-print delete-col">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                          onClick={() => setDeleteId(r.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex justify-center gap-1 items-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-500 hover:bg-blue-100"
+                            onClick={() => setEditItem(r)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteId(r.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -268,6 +312,47 @@ const AccountStatement = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
+        <DialogContent className="sm:max-w-[425px]" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-right">تعديل العملية</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-right block">التفاصيل</label>
+              <Input 
+                value={editItem?.description || ""} 
+                onChange={(e) => setEditItem({...editItem, description: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-right block">عليه / مدين</label>
+                <Input 
+                  type="number"
+                  value={editItem?.debit || 0} 
+                  onChange={(e) => setEditItem({...editItem, debit: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-right block">له / دائن</label>
+                <Input 
+                  type="number"
+                  value={editItem?.credit || 0} 
+                  onChange={(e) => setEditItem({...editItem, credit: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button className="w-full gap-2" onClick={() => updateMutation.mutate(editItem)}>
+              <Save className="h-4 w-4" /> حفظ التعديلات
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
