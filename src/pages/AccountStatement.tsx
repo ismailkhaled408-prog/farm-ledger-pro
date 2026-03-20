@@ -6,11 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Printer, Trash2, Pencil, Save } from "lucide-react";
+import { CalendarIcon, Printer, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,13 +20,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 
 const AccountStatement = () => {
   const queryClient = useQueryClient();
@@ -35,11 +27,7 @@ const AccountStatement = () => {
   const [partnerId, setPartnerId] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
-  
-  // States for Delete & Edit
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [editItem, setEditItem] = useState<any>(null);
-  
   const printRef = useRef<HTMLDivElement>(null);
 
   const { data: partners } = useQuery({
@@ -72,7 +60,6 @@ const AccountStatement = () => {
     enabled: !!partnerId,
   });
 
-  // Mutation for Delete
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("transactions").delete().eq("id", id);
@@ -80,31 +67,11 @@ const AccountStatement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions-all"] });
       toast.success("تم حذف العملية بنجاح");
       setDeleteId(null);
     },
-  });
-
-  // Mutation for Update
-  const updateMutation = useMutation({
-    mutationFn: async (payload: any) => {
-      const { error } = await supabase
-        .from("transactions")
-        .update({
-          date: payload.date,
-          description: payload.description,
-          debit: parseFloat(payload.debit) || 0,
-          credit: parseFloat(payload.credit) || 0,
-        })
-        .eq("id", payload.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("تم تحديث البيانات بنجاح");
-      setEditItem(null);
-    },
-    onError: () => toast.error("حدث خطأ أثناء التحديث"),
+    onError: () => toast.error("حدث خطأ أثناء الحذف"),
   });
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
@@ -132,20 +99,29 @@ const AccountStatement = () => {
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Cairo', sans-serif; direction: rtl; padding: 20px; }
+          body { font-family: 'Cairo', sans-serif; direction: rtl; padding: 20px; background: #fff; color: #111; }
           table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-          th { background: #1a2332; color: white; padding: 10px; }
-          td { padding: 8px; border-bottom: 1px solid #ddd; text-align: center; }
-          .no-print { display: none !important; }
+          th { background: #1a2332; color: white; padding: 10px 8px; font-size: 14px; }
+          td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 13px; text-align: center; color: #222; }
+          .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 3px solid #1a2332; padding-bottom: 15px; }
+          .debit { color: #dc2626; font-weight: bold; }
+          .credit { color: #16a34a; font-weight: bold; }
+          .total-row { background: #f0f4f8; font-weight: bold; }
+          .balance-row { background: #1a2332; color: white; font-weight: bold; }
+          .back-btn { display: inline-block; margin-bottom: 16px; padding: 8px 24px; background: #1a2332; color: white; border: none; border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 14px; cursor: pointer; }
+          .back-btn:hover { background: #2a3a4f; }
+          .delete-col { display: none; }
+          @media print { .back-btn { display: none !important; } .delete-col { display: none !important; } }
         </style>
       </head>
       <body>
+        <button class="back-btn" onclick="window.close()">✕ إغلاق والرجوع</button>
         ${content.innerHTML}
-        <script>window.onload = () => { window.print(); window.close(); }</script>
       </body>
       </html>
     `);
     win.document.close();
+    setTimeout(() => win.print(), 500);
   };
 
   return (
@@ -179,8 +155,8 @@ const AccountStatement = () => {
                 {dateFrom ? format(dateFrom, "yyyy/MM/dd") : "اختر تاريخ"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} />
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} className="p-3 pointer-events-auto" />
             </PopoverContent>
           </Popover>
         </div>
@@ -194,8 +170,8 @@ const AccountStatement = () => {
                 {dateTo ? format(dateTo, "yyyy/MM/dd") : "اختر تاريخ"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={dateTo} onSelect={setDateTo} />
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dateTo} onSelect={setDateTo} className="p-3 pointer-events-auto" />
             </PopoverContent>
           </Popover>
         </div>
@@ -208,113 +184,108 @@ const AccountStatement = () => {
         )}
       </div>
 
-      {/* Table Section */}
+      {/* Printable Statement */}
       {partnerId && (
         <div ref={printRef}>
-          <div className="flex justify-between items-center border-b-4 border-primary pb-4 mb-4">
-             <div className="text-center w-full">
-                <h2 className="text-2xl font-bold">كشف حساب: {selectedPartner?.name}</h2>
-             </div>
+          <div className="flex flex-col md:flex-row justify-between items-center border-b-4 border-primary pb-4 mb-4 gap-2">
+            <div className="text-right hidden md:block">
+              <h2 className="text-xl font-bold">{bizSettings?.business_name ?? "المتوكل على الله للدواجن"}</h2>
+              <p className="text-sm text-muted-foreground">{bizSettings?.business_subtitle ?? "جميع أنواع الأعلاف والدواجن"}</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-6xl">🐔</div>
+              <p className="font-bold text-sm md:text-lg mt-1">كشف حساب: {selectedPartner?.name}</p>
+              <p className="text-xs text-muted-foreground">{selectedPartner?.type === "client" ? "عميل" : "مورد"}</p>
+            </div>
+            <div className="text-left hidden md:block">
+              <h2 className="text-xl font-bold">{bizSettings?.business_name_en ?? "Al-Mutawakel"}</h2>
+              <p className="text-sm text-muted-foreground">{bizSettings?.business_subtitle_en ?? "Poultry & Feed Trading"}</p>
+            </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-slate-800 text-white">
-                  <th className="p-3">التاريخ</th>
-                  <th className="p-3">التفاصيل</th>
-                  <th className="p-3">{isSupplier ? "مشتريات" : "عليه"}</th>
-                  <th className="p-3">{isSupplier ? "مدفوعات" : "له"}</th>
-                  <th className="p-3">الرصيد</th>
-                  <th className="p-3 no-print">إجراءات</th>
+          <div className="overflow-x-auto -mx-4 md:mx-0">
+          <table className="w-full border-collapse min-w-[500px]">
+            <thead>
+              <tr className="bg-table-header text-table-header-foreground">
+                <th className="p-3 text-center font-bold">التاريخ</th>
+                <th className="p-3 text-center font-bold">التفاصيل</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "مشتريات" : "عليه"}</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "مدفوعات" : "له"}</th>
+                <th className="p-3 text-center font-bold">{isSupplier ? "الباقي عليك" : "الرصيد"}</th>
+                <th className="p-3 text-center font-bold no-print delete-col">حذف</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                    لا توجد عمليات
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={r.id} className={cn("border-b", i % 2 === 0 ? "bg-white" : "bg-slate-50")}>
-                    <td className="p-3 text-center">{format(new Date(r.date), "yyyy/MM/dd")}</td>
-                    <td className="p-3 text-center">{r.description}</td>
-                    <td className="p-3 text-center text-red-600 font-bold">{Number(r.debit) || "-"}</td>
-                    <td className="p-3 text-center text-green-600 font-bold">{Number(r.credit) || "-"}</td>
-                    <td className="p-3 text-center font-bold">{r.balance.toLocaleString("ar-EG")}</td>
-                    <td className="p-3 text-center no-print flex justify-center gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => setEditItem(r)} className="text-blue-600">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(r.id)} className="text-red-600">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </td>
+              ) : (
+                <>
+                  {rows.map((r, i) => (
+                    <tr key={r.id} className={cn("border-b border-border", i % 2 === 0 ? "bg-card" : "bg-muted/30")}>
+                      <td className="p-3 text-center text-sm">{format(new Date(r.date), "yyyy/MM/dd")}</td>
+                      <td className="p-3 text-center text-sm">{r.description}</td>
+                      <td className="p-3 text-center font-bold text-destructive">
+                        {Number(r.debit) > 0 ? Number(r.debit).toLocaleString("ar-EG") : "-"}
+                      </td>
+                      <td className="p-3 text-center font-bold text-success">
+                        {Number(r.credit) > 0 ? Number(r.credit).toLocaleString("ar-EG") : "-"}
+                      </td>
+                      <td className={cn("p-3 text-center font-bold", r.balance > 0 ? "text-destructive" : "text-success")}>
+                        {r.balance.toLocaleString("ar-EG")}
+                      </td>
+                      <td className="p-3 text-center no-print delete-col">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteId(r.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-muted font-bold border-t-2 border-primary">
+                    <td className="p-3 text-center" colSpan={2}>إجمالي العمليات</td>
+                    <td className="p-3 text-center text-destructive">{totalDebit.toLocaleString("ar-EG")}</td>
+                    <td className="p-3 text-center text-success">{totalCredit.toLocaleString("ar-EG")}</td>
+                    <td className="p-3 text-center">-</td>
+                    <td className="no-print delete-col"></td>
                   </tr>
-                ))}
-                
-                {/* صف إجمالي العمليات اللي طلبته */}
-                <tr className="bg-slate-100 font-bold border-t-2 border-slate-800">
-                  <td className="p-3 text-center" colSpan={2}>إجمالي العمليات</td>
-                  <td className="p-3 text-center text-red-600">{totalDebit.toLocaleString("ar-EG")}</td>
-                  <td className="p-3 text-center text-green-600">{totalCredit.toLocaleString("ar-EG")}</td>
-                  <td className="p-3 text-center bg-slate-200">الصافي: {finalBalance.toLocaleString("ar-EG")}</td>
-                  <td className="no-print"></td>
-                </tr>
-              </tbody>
-            </table>
+                  <tr className="bg-primary text-primary-foreground font-bold">
+                    <td className="p-3 text-center" colSpan={4}>الرصيد الإجمالي</td>
+                    <td className="p-3 text-center text-lg">{finalBalance.toLocaleString("ar-EG")}</td>
+                    <td className="no-print delete-col"></td>
+                  </tr>
+                </>
+              )}
+            </tbody>
+          </table>
           </div>
         </div>
       )}
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
-        <DialogContent className="sm:max-w-[425px]" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-right">تعديل العملية</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-bold">التفاصيل</label>
-              <Input 
-                value={editItem?.description || ""} 
-                onChange={(e) => setEditItem({...editItem, description: e.target.value})}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold">عليه / مدين</label>
-                <Input 
-                  type="number"
-                  value={editItem?.debit || 0} 
-                  onChange={(e) => setEditItem({...editItem, debit: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold">له / دائن</label>
-                <Input 
-                  type="number"
-                  value={editItem?.credit || 0} 
-                  onChange={(e) => setEditItem({...editItem, credit: e.target.value})}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button className="w-full gap-2" onClick={() => updateMutation.mutate(editItem)}>
-              <Save className="h-4 w-4" /> حفظ التعديلات
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-right">حذف العملية؟</AlertDialogTitle>
-            <AlertDialogDescription className="text-right">
-              سيتم مسح البيانات نهائياً من الحساب.
+            <AlertDialogTitle>هل أنت متأكد من حذف هذه العملية؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              لا يمكن التراجع عن هذا الإجراء. سيتم حذف العملية نهائياً.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row-reverse gap-2">
+          <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <Button variant="destructive" onClick={() => deleteId && deleteMutation.mutate(deleteId)}>حذف</Button>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+            >
+              حذف
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
