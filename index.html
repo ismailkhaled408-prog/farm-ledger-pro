@@ -7,8 +7,8 @@
     <meta name="description" content="نظام إدارة المزرعة وتجارة الأعلاف">
     <meta name="author" content="Ismail Khaled" />
 
-    <link rel="icon" type="image/png" href="/icon-512.png?v=3" sizes="512x512" />
-    <link rel="apple-touch-icon" href="/icon-512.png?v=3" />
+    <link rel="icon" type="image/png" href="/icon-512.png?v=5" sizes="512x512" />
+    <link rel="apple-touch-icon" href="/icon-512.png?v=5" />
     
     <link rel="manifest" href="/manifest.json" />
 
@@ -18,27 +18,54 @@
     <meta name="apple-mobile-web-app-title" content="المتوكل">
     <meta name="theme-color" content="#1a2332">
 
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="المتوكل على الله للدواجن">
-    <meta property="og:description" content="إدارة حسابات الدواجن والأعلاف">
-    <meta property="og:image" content="/icon-512.png?v=3">
+    <style>
+      /* إخفاء أي شعارات أو أزرار تخص Lovable */
+      #lovable-badge, 
+      .lovable-badge,
+      button[title*="Lovable"],
+      a[href*="lovable.dev"],
+      iframe[src*="lovable"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+    </style>
   </head>
 
   <body>
     <div id="root"></div>
+    
+    <script>
+      (function() {
+        const removeLovable = () => {
+          // 1. مسح الروابط المباشرة
+          const badges = document.querySelectorAll('a[href*="lovable.dev"], .lovable-badge');
+          badges.forEach(b => b.remove());
+
+          // 2. مسح العناصر المستخبية جوه الـ Shadow Root
+          const allElements = document.querySelectorAll('*');
+          allElements.forEach(el => {
+            if (el.shadowRoot) {
+              const badge = el.shadowRoot.querySelector('a[href*="lovable.dev"], .lovable-badge');
+              if (badge) {
+                el.style.display = 'none';
+                el.remove();
+              }
+            }
+          });
+        };
+
+        // تشغيل المسح عند التحميل وبشكل مستمر لمراقبة أي ظهور جديد
+        window.addEventListener('load', removeLovable);
+        const observer = new MutationObserver(removeLovable);
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        setInterval(removeLovable, 500);
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
-
-  <style>
-  /* إخفاء شعار Lovable */
-  .lovable-badge, 
-  [id*="lovable"], 
-  button[title*="Lovable"],
-  div[class*="lovable"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-</style>
 </html>
