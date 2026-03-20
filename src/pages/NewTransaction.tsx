@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const NewTransaction = () => {
   const queryClient = useQueryClient();
+  const { data: bizSettings } = useBusinessSettings();
+  
   const [partnerId, setPartnerId] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [type, setType] = useState<"debit" | "credit">("debit");
@@ -87,20 +90,25 @@ const NewTransaction = () => {
 
   const isValid = partnerId && calculatedAmount > 0;
 
+  // قائمة المنتجات الديناميكية من الإعدادات
+  const productOptions = bizSettings?.products && Array.isArray(bizSettings.products) && bizSettings.products.length > 0
+    ? bizSettings.products
+    : ["فراخ", "علف", "بيض", "أخرى"];
+
   return (
     <div className="p-4 md:p-6 max-w-xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">إضافة عملية جديدة</CardTitle>
+          <CardTitle className="text-xl text-right">إضافة عملية جديدة</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">العميل/المورد</label>
+            <label className="text-sm font-medium mb-1 block text-right">العميل/المورد</label>
             <Select value={partnerId} onValueChange={(v) => { setPartnerId(v); }}>
-              <SelectTrigger>
+              <SelectTrigger dir="rtl">
                 <SelectValue placeholder="اختر..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent dir="rtl">
                 {partners?.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.name} ({p.type === "client" ? "عميل" : "مورد"})
@@ -121,7 +129,7 @@ const NewTransaction = () => {
           )}
 
           <div>
-            <label className="text-sm font-medium mb-1 block">التاريخ</label>
+            <label className="text-sm font-medium mb-1 block text-right">التاريخ</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-full justify-start")}>
@@ -136,12 +144,12 @@ const NewTransaction = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-1 block">النوع</label>
+            <label className="text-sm font-medium mb-1 block text-right">النوع</label>
             <Select value={type} onValueChange={(v) => setType(v as "debit" | "credit")}>
-              <SelectTrigger>
+              <SelectTrigger dir="rtl">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent dir="rtl">
                 <SelectItem value="debit">
                   {isSupplier ? "شراء منه (عليك)" : "عليه (سحب بضاعة)"}
                 </SelectItem>
@@ -155,26 +163,26 @@ const NewTransaction = () => {
           {type === "debit" ? (
             <>
               <div>
-                <label className="text-sm font-medium mb-1 block">اسم المنتج</label>
+                <label className="text-sm font-medium mb-1 block text-right">اسم المنتج</label>
                 <Select value={productName} onValueChange={setProductName}>
-                  <SelectTrigger>
+                  <SelectTrigger dir="rtl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="فراخ">فراخ</SelectItem>
-                    <SelectItem value="علف">علف</SelectItem>
-                    <SelectItem value="بيض">بيض</SelectItem>
-                    <SelectItem value="أخرى">أخرى</SelectItem>
+                  <SelectContent dir="rtl">
+                    {/* تحديث: قراءة المنتجات من الإعدادات */}
+                    {productOptions.map((prod: string) => (
+                      <SelectItem key={prod} value={prod}>{prod}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">الكمية</label>
+                  <label className="text-sm font-medium mb-1 block text-right">الكمية</label>
                   <Input type="number" min="0" step="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="مثال: 50" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">سعر الوحدة</label>
+                  <label className="text-sm font-medium mb-1 block text-right">سعر الوحدة</label>
                   <Input type="number" min="0" step="0.5" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="مثال: 85" />
                 </div>
               </div>
@@ -188,12 +196,12 @@ const NewTransaction = () => {
           ) : (
             <>
               <div>
-                <label className="text-sm font-medium mb-1 block">طريقة الدفع</label>
+                <label className="text-sm font-medium mb-1 block text-right">طريقة الدفع</label>
                 <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger>
+                  <SelectTrigger dir="rtl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent dir="rtl">
                     <SelectItem value="نقدي">نقدي</SelectItem>
                     <SelectItem value="بريد">بريد</SelectItem>
                     <SelectItem value="تحويل بنكي">تحويل بنكي</SelectItem>
@@ -202,22 +210,22 @@ const NewTransaction = () => {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">المبلغ</label>
+                <label className="text-sm font-medium mb-1 block text-right">المبلغ</label>
                 <Input type="number" min="0" step="0.01" value={creditAmount} onChange={(e) => setCreditAmount(e.target.value)} placeholder="0.00" />
               </div>
             </>
           )}
 
           <div>
-            <label className="text-sm font-medium mb-1 block">ملاحظات إضافية (اختياري)</label>
+            <label className="text-sm font-medium mb-1 block text-right">ملاحظات إضافية (اختياري)</label>
             <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="أي تفاصيل إضافية..." />
           </div>
 
           {/* Auto-generated description preview */}
           {calculatedAmount > 0 && (
             <div className="bg-muted/50 rounded-lg p-3 border border-border">
-              <span className="text-xs text-muted-foreground block mb-1">التفاصيل (تلقائي):</span>
-              <span className="text-sm font-medium">{autoDescription}</span>
+              <span className="text-xs text-muted-foreground block mb-1 text-right">التفاصيل (تلقائي):</span>
+              <span className="text-sm font-medium block text-right">{autoDescription}</span>
             </div>
           )}
 
