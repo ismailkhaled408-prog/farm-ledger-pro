@@ -253,7 +253,7 @@ const AccountStatement = () => {
           <label className="text-sm font-medium mb-1 block">من تاريخ</label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-44 justify-start", !dateFrom && "text-muted-foreground")}>
+              <Button variant="outline" className={cn("w-full md:w-44 justify-start", !dateFrom && "text-muted-foreground")}>
                 <CalendarIcon className="ml-2 h-4 w-4" />
                 {dateFrom ? format(dateFrom, "yyyy/MM/dd") : "اختر تاريخ"}
               </Button>
@@ -268,7 +268,7 @@ const AccountStatement = () => {
           <label className="text-sm font-medium mb-1 block">إلى تاريخ</label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-44 justify-start", !dateTo && "text-muted-foreground")}>
+              <Button variant="outline" className={cn("w-full md:w-44 justify-start", !dateTo && "text-muted-foreground")}>
                 <CalendarIcon className="ml-2 h-4 w-4" />
                 {dateTo ? format(dateTo, "yyyy/MM/dd") : "اختر تاريخ"}
               </Button>
@@ -280,7 +280,7 @@ const AccountStatement = () => {
         </div>
 
         {partnerId && (
-          <Button onClick={handlePrint} className="gap-2">
+          <Button onClick={handlePrint} className="gap-2 w-full sm:w-auto">
             <Printer className="h-4 w-4" />
             طباعة PDF
           </Button>
@@ -307,21 +307,21 @@ const AccountStatement = () => {
           </div>
 
           <div className="overflow-x-auto -mx-4 md:mx-0">
-          <table className="w-full border-collapse min-w-[500px]">
+          <table className="w-full border-collapse">
             <thead>
               <tr className="bg-table-header text-table-header-foreground">
-                <th className="p-3 text-center font-bold">التاريخ</th>
-                <th className="p-3 text-center font-bold">التفاصيل</th>
-                <th className="p-3 text-center font-bold">{isSupplier ? "مشتريات" : "عليه"}</th>
-                <th className="p-3 text-center font-bold">{isSupplier ? "مدفوعات" : "له"}</th>
-                <th className="p-3 text-center font-bold">{isSupplier ? "الباقي عليك" : "الرصيد"}</th>
-                <th className="p-3 text-center font-bold no-print delete-col">تعديل / حذف</th>
+                <th className="p-1 sm:p-2 md:p-3 text-center font-bold text-[10px] sm:text-xs md:text-sm">التاريخ</th>
+                <th className="p-1 sm:p-2 md:p-3 text-center font-bold text-[10px] sm:text-xs md:text-sm">التفاصيل</th>
+                <th className="p-1 sm:p-2 md:p-3 text-center font-bold text-[10px] sm:text-xs md:text-sm">{isSupplier ? "مشتريات" : "عليه"}</th>
+                <th className="p-1 sm:p-2 md:p-3 text-center font-bold text-[10px] sm:text-xs md:text-sm">{isSupplier ? "مدفوعات" : "له"}</th>
+                <th className="p-1 sm:p-2 md:p-3 text-center font-bold text-[10px] sm:text-xs md:text-sm">{isSupplier ? "الباقي عليك" : "الرصيد"}</th>
+                <th className="p-1 sm:p-2 md:p-3 text-center font-bold text-[10px] sm:text-xs md:text-sm no-print delete-col">تعديل/حذف</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground text-[10px] sm:text-xs md:text-sm">
                     لا توجد عمليات
                   </td>
                 </tr>
@@ -329,49 +329,49 @@ const AccountStatement = () => {
                 <>
                   {rows.map((r, i) => (
                     <tr key={r.id} className={cn("border-b border-border", i % 2 === 0 ? "bg-card" : "bg-muted/30")}>
-                      <td className="p-3 text-center text-sm">{format(new Date(r.date), "yyyy/MM/dd")}</td>
-                      <td className="p-3 text-center text-sm">{r.description}</td>
-                      <td className="p-3 text-center font-bold text-destructive">
+                      <td className="p-1 sm:p-2 md:p-3 text-center text-[10px] sm:text-xs md:text-sm whitespace-nowrap">{format(new Date(r.date), "yyyy/MM/dd")}</td>
+                      <td className="p-1 sm:p-2 md:p-3 text-center text-[10px] sm:text-xs md:text-sm">{r.description}</td>
+                      <td className="p-1 sm:p-2 md:p-3 text-center font-bold text-destructive text-[10px] sm:text-xs md:text-sm">
                         {Number(r.debit) > 0 ? Number(r.debit).toLocaleString("ar-EG") : "-"}
                       </td>
-                      <td className="p-3 text-center font-bold text-success">
+                      <td className="p-1 sm:p-2 md:p-3 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">
                         {Number(r.credit) > 0 ? Number(r.credit).toLocaleString("ar-EG") : "-"}
                       </td>
-                      <td className={cn("p-3 text-center font-bold", r.balance > 0 ? "text-destructive" : "text-success")}>
+                      <td className={cn("p-1 sm:p-2 md:p-3 text-center font-bold text-[10px] sm:text-xs md:text-sm", r.balance > 0 ? "text-destructive" : "text-success")}>
                         {r.balance.toLocaleString("ar-EG")}
                       </td>
-                      <td className="p-3 text-center no-print delete-col">
-                        <div className="flex justify-center gap-1 items-center">
+                      <td className="p-1 sm:p-2 md:p-3 text-center no-print delete-col">
+                        <div className="flex flex-col sm:flex-row justify-center gap-1 items-center">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-blue-500 hover:bg-blue-100"
+                            className="h-6 w-6 md:h-8 md:w-8 text-blue-500 hover:bg-blue-100"
                             onClick={() => handleEditClick(r)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            className="h-6 w-6 md:h-8 md:w-8 text-destructive hover:bg-destructive/10"
                             onClick={() => setDeleteId(r.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
                         </div>
                       </td>
                     </tr>
                   ))}
                   <tr className="bg-muted font-bold border-t-2 border-primary">
-                    <td className="p-3 text-center" colSpan={2}>إجمالي العمليات</td>
-                    <td className="p-3 text-center text-destructive">{totalDebit.toLocaleString("ar-EG")}</td>
-                    <td className="p-3 text-center text-success">{totalCredit.toLocaleString("ar-EG")}</td>
-                    <td className="p-3 text-center">-</td>
+                    <td className="p-1 sm:p-2 md:p-3 text-center text-[10px] sm:text-xs md:text-sm" colSpan={2}>إجمالي العمليات</td>
+                    <td className="p-1 sm:p-2 md:p-3 text-center text-destructive text-[10px] sm:text-xs md:text-sm">{totalDebit.toLocaleString("ar-EG")}</td>
+                    <td className="p-1 sm:p-2 md:p-3 text-center text-success text-[10px] sm:text-xs md:text-sm">{totalCredit.toLocaleString("ar-EG")}</td>
+                    <td className="p-1 sm:p-2 md:p-3 text-center text-[10px] sm:text-xs md:text-sm">-</td>
                     <td className="no-print delete-col"></td>
                   </tr>
                   <tr className="bg-primary text-primary-foreground font-bold">
-                    <td className="p-3 text-center" colSpan={4}>الرصيد الإجمالي</td>
-                    <td className="p-3 text-center text-lg">{finalBalance.toLocaleString("ar-EG")}</td>
+                    <td className="p-1 sm:p-2 md:p-3 text-center text-[10px] sm:text-xs md:text-sm" colSpan={4}>الرصيد الإجمالي</td>
+                    <td className="p-1 sm:p-2 md:p-3 text-center font-bold text-xs sm:text-sm md:text-lg">{finalBalance.toLocaleString("ar-EG")}</td>
                     <td className="no-print delete-col"></td>
                   </tr>
                 </>
