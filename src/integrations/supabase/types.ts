@@ -21,6 +21,7 @@ export type Database = {
           business_subtitle: string
           business_subtitle_en: string
           id: string
+          products: Json | null
           updated_at: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           business_subtitle?: string
           business_subtitle_en?: string
           id?: string
+          products?: Json | null
           updated_at?: string
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           business_subtitle?: string
           business_subtitle_en?: string
           id?: string
+          products?: Json | null
           updated_at?: string
         }
         Relationships: []
