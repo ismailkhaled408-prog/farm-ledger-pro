@@ -7,6 +7,7 @@ export interface BusinessSettings {
   business_subtitle: string;
   business_name_en: string;
   business_subtitle_en: string;
+  products: string[] | null;
 }
 
 export const useBusinessSettings = () => {

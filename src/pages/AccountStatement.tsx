@@ -345,7 +345,7 @@ const AccountStatement = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 md:h-8 md:w-8 text-blue-500 hover:bg-blue-100"
+                            className="h-6 w-6 md:h-8 md:w-8 text-primary hover:bg-primary/10"
                             onClick={() => handleEditClick(r)}
                           >
                             <Pencil className="h-3 w-3 md:h-4 md:w-4" />
@@ -460,7 +460,7 @@ const AccountStatement = () => {
               <>
                 <div>
                   <label className="text-sm font-medium mb-1 block text-right">طريقة الدفع</label>
-                  <Select value={editPaymentMethod} onValueChange={setPaymentMethod}>
+                  <Select value={editPaymentMethod} onValueChange={setEditPaymentMethod}>
                     <SelectTrigger dir="rtl">
                       <SelectValue />
                     </SelectTrigger>
