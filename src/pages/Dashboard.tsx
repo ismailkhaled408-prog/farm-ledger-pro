@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, TrendingDown, TrendingUp, DollarSign, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, TrendingDown, TrendingUp, DollarSign, ChevronDown, ChevronUp, ShoppingCart, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Section = "debtors" | "recent" | null;
@@ -36,7 +36,6 @@ const Dashboard = () => {
     },
   });
 
-  // Filter by type
   const filteredPartnerIds = new Set(
     partners
       ?.filter((p) => filterType === "all" || p.type === filterType)
@@ -74,41 +73,45 @@ const Dashboard = () => {
 
   const kpis = [
     {
-      label: filterType === "supplier" ? "إجمالي الموردين" : filterType === "client" ? "إجمالي العملاء" : "إجمالي الشركاء",
+      label: filterType === "supplier" ? "الموردين" : filterType === "client" ? "العملاء" : "الشركاء",
       value: totalPartners,
       icon: Users,
-      color: "text-primary",
+      gradient: "from-primary/20 to-primary/5",
+      iconColor: "text-primary",
       action: () => navigate("/partners"),
     },
     {
-      label: filterType === "supplier" ? "إجمالي المشتريات" : "إجمالي المديونيات",
+      label: filterType === "supplier" ? "المشتريات" : "المديونيات",
       value: totalDebit.toLocaleString("ar-EG"),
-      icon: TrendingDown,
-      color: "text-destructive",
+      icon: ShoppingCart,
+      gradient: "from-destructive/20 to-destructive/5",
+      iconColor: "text-destructive",
       action: () => toggle("debtors"),
     },
     {
-      label: filterType === "supplier" ? "إجمالي المدفوع لهم" : "إجمالي المدفوعات",
+      label: filterType === "supplier" ? "المدفوع لهم" : "المدفوعات",
       value: totalCredit.toLocaleString("ar-EG"),
-      icon: TrendingUp,
-      color: "text-success",
+      icon: Wallet,
+      gradient: "from-success/20 to-success/5",
+      iconColor: "text-success",
       action: () => toggle("recent"),
     },
     {
       label: "صافي الأرصدة",
       value: netBalance.toLocaleString("ar-EG"),
       icon: DollarSign,
-      color: netBalance > 0 ? "text-destructive" : "text-success",
+      gradient: netBalance > 0 ? "from-destructive/20 to-destructive/5" : "from-success/20 to-success/5",
+      iconColor: netBalance > 0 ? "text-destructive" : "text-success",
       action: () => toggle("debtors"),
     },
   ];
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+    <div className="p-4 md:p-6 space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl md:text-2xl font-bold">لوحة التحكم</h1>
+        <h1 className="text-lg md:text-2xl font-bold">لوحة التحكم</h1>
         <Select value={filterType} onValueChange={(v) => setFilterType(v as FilterType)}>
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-28 h-9 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -120,53 +123,55 @@ const Dashboard = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 gap-3">
         {kpis.map((kpi) => (
           <Card
             key={kpi.label}
-            className="cursor-pointer active:scale-95 transition-transform"
+            className={cn("cursor-pointer active:scale-[0.97] transition-all border-0 bg-gradient-to-br", kpi.gradient)}
             onClick={kpi.action}
           >
-            <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
-              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">{kpi.label}</CardTitle>
-              <kpi.icon className={`h-4 w-4 md:h-5 md:w-5 ${kpi.color}`} />
-            </CardHeader>
-            <CardContent className="p-3 md:p-6 pt-0">
-              <div className={`text-lg md:text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
+            <CardContent className="p-3 flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-muted-foreground font-medium">{kpi.label}</span>
+                <kpi.icon className={cn("h-4 w-4", kpi.iconColor)} />
+              </div>
+              <div className={cn("text-base md:text-xl font-bold", kpi.iconColor)}>{kpi.value}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Expandable: Top Debtors */}
-      <Card>
+      {/* Top Debtors */}
+      <Card className="border-0 bg-card/80">
         <CardHeader
-          className="cursor-pointer flex flex-row items-center justify-between"
+          className="cursor-pointer flex flex-row items-center justify-between p-3 pb-2"
           onClick={() => toggle("debtors")}
         >
-          <CardTitle className="text-lg">
+          <CardTitle className="text-sm font-bold">
             {filterType === "supplier" ? "أعلى الموردين المستحقين" : "أعلى العملاء المدينين"}
           </CardTitle>
-          {openSection === "debtors" ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          {openSection === "debtors" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </CardHeader>
         {openSection === "debtors" && (
-          <CardContent>
+          <CardContent className="p-3 pt-0">
             {topDebtors.length === 0 ? (
-              <p className="text-muted-foreground text-sm">لا توجد بيانات</p>
+              <p className="text-muted-foreground text-xs">لا توجد بيانات</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {topDebtors.map((d, i) => (
-                  <div key={i} className="flex justify-between items-center">
+                  <div key={i} className="flex justify-between items-center bg-muted/30 rounded-lg p-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{d.name}</span>
+                      <span className="text-xs font-medium">{d.name}</span>
                       <span className={cn(
-                        "text-[10px] px-1.5 py-0.5 rounded",
-                        d.type === "supplier" ? "bg-accent/20 text-accent" : "bg-primary/20 text-primary"
+                        "text-[9px] px-1.5 py-0.5 rounded-full font-bold",
+                        d.type === "supplier"
+                          ? "bg-accent/20 text-accent"
+                          : "bg-primary/20 text-primary"
                       )}>
                         {d.type === "supplier" ? "مورد" : "عميل"}
                       </span>
                     </div>
-                    <span className="font-bold text-destructive">{d.balance.toLocaleString("ar-EG")}</span>
+                    <span className="font-bold text-xs text-destructive">{d.balance.toLocaleString("ar-EG")}</span>
                   </div>
                 ))}
               </div>
@@ -175,34 +180,40 @@ const Dashboard = () => {
         )}
       </Card>
 
-      {/* Expandable: Recent Transactions */}
-      <Card>
+      {/* Recent Transactions */}
+      <Card className="border-0 bg-card/80">
         <CardHeader
-          className="cursor-pointer flex flex-row items-center justify-between"
+          className="cursor-pointer flex flex-row items-center justify-between p-3 pb-2"
           onClick={() => toggle("recent")}
         >
-          <CardTitle className="text-lg">آخر العمليات</CardTitle>
-          {openSection === "recent" ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          <CardTitle className="text-sm font-bold">آخر العمليات</CardTitle>
+          {openSection === "recent" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </CardHeader>
         {openSection === "recent" && (
-          <CardContent>
+          <CardContent className="p-3 pt-0">
             {recentTransactions.length === 0 ? (
-              <p className="text-muted-foreground text-sm">لا توجد عمليات</p>
+              <p className="text-muted-foreground text-xs">لا توجد عمليات</p>
             ) : (
-              <div className="space-y-2">
-                {recentTransactions.map((t) => (
-                  <div key={t.id} className="flex justify-between items-center text-xs md:text-sm border-b border-border pb-2 gap-2">
-                    <div className="min-w-0 flex-1">
-                      <span className="font-medium">{(t.partners as any)?.name}</span>
-                      <span className="text-muted-foreground mx-1">-</span>
-                      <span className="text-muted-foreground truncate">{t.description}</span>
+              <div className="space-y-1.5">
+                {recentTransactions.map((t) => {
+                  const partnerType = (t.partners as any)?.type;
+                  return (
+                    <div key={t.id} className="flex justify-between items-center text-xs bg-muted/30 rounded-lg p-2 gap-2">
+                      <div className="min-w-0 flex-1 flex items-center gap-1.5">
+                        <span className={cn(
+                          "shrink-0 w-1.5 h-1.5 rounded-full",
+                          partnerType === "supplier" ? "bg-accent" : "bg-primary"
+                        )} />
+                        <span className="font-medium truncate">{(t.partners as any)?.name}</span>
+                        <span className="text-muted-foreground truncate hidden sm:inline">- {t.description}</span>
+                      </div>
+                      <div className="shrink-0">
+                        {Number(t.debit) > 0 && <span className="text-destructive font-bold">{Number(t.debit).toLocaleString("ar-EG")}</span>}
+                        {Number(t.credit) > 0 && <span className="text-success font-bold">{Number(t.credit).toLocaleString("ar-EG")}</span>}
+                      </div>
                     </div>
-                    <div>
-                      {Number(t.debit) > 0 && <span className="text-destructive font-bold">{Number(t.debit).toLocaleString("ar-EG")}</span>}
-                      {Number(t.credit) > 0 && <span className="text-success font-bold">{Number(t.credit).toLocaleString("ar-EG")}</span>}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

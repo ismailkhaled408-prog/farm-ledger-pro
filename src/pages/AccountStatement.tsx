@@ -460,7 +460,7 @@ const AccountStatement = () => {
               <>
                 <div>
                   <label className="text-sm font-medium mb-1 block text-right">طريقة الدفع</label>
-                  <Select value={editPaymentMethod} onValueChange={setPaymentMethod}>
+                  <Select value={editPaymentMethod} onValueChange={setEditPaymentMethod}>
                     <SelectTrigger dir="rtl">
                       <SelectValue />
                     </SelectTrigger>
